@@ -10,11 +10,11 @@ interface AdminDashboardProps {
 }
 
 interface LoginLog {
-  _id: string;
+  id: string;
   email: string;
-  loginTime: string;
+  login_time: string;
   ip: string;
-  userAgent: string;
+  user_agent: string;
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ products, deleteProduct }) => {
@@ -117,11 +117,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ products, deleteProduct
               </thead>
               <tbody className="text-gray-700">
                 {logins.map(login => (
-                  <tr key={login._id} className="border-b border-gray-200 hover:bg-gray-50">
+                  <tr key={login.id} className="border-b border-gray-200 hover:bg-gray-50">
                     <td className="py-3 px-4">{login.email}</td>
-                    <td className="py-3 px-4">{new Date(login.loginTime).toLocaleString()}</td>
+                    <td className="py-3 px-4">{new Date(login.login_time).toLocaleString()}</td>
                     <td className="py-3 px-4">{login.ip}</td>
-                    <td className="py-3 px-4 truncate max-w-xs" title={login.userAgent}>{login.userAgent}</td>
+                    <td className="py-3 px-4 truncate max-w-xs" title={login.user_agent}>{login.user_agent}</td>
                   </tr>
                 ))}
               </tbody>

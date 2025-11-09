@@ -6,7 +6,6 @@ export enum ProductStatus {
 }
 
 export interface Product {
-  _id?: string;
   id: string;
   title: string;
   price: string;
@@ -17,4 +16,6 @@ export interface Product {
   affiliateLink: string;
   status: ProductStatus;
   publishDate: string; // ISO string
+  created_at?: string;
+  updated_at?: string;
 }

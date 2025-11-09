@@ -50,13 +50,13 @@ const App: React.FC = () => {
 
   const updateProduct = async (updatedProduct: Product) => {
     try {
-      const response = await fetch(`/api/products/${updatedProduct._id}`, {
+      const response = await fetch(`/api/products/${updatedProduct.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedProduct),
       });
       const data = await response.json();
-      setProducts(products.map(p => (p._id === updatedProduct._id ? data : p)));
+      setProducts(products.map(p => (p.id === updatedProduct.id ? data : p)));
     } catch (error) {
       console.error('Error updating product:', error);
     }
@@ -67,7 +67,7 @@ const App: React.FC = () => {
       await fetch(`/api/products/${id}`, {
         method: 'DELETE',
       });
-      setProducts(products.filter(p => p._id !== id));
+      setProducts(products.filter(p => p.id !== id));
     } catch (error) {
       console.error('Error deleting product:', error);
     }

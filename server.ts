@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
+import { Pool } from 'pg';
 
 dotenv.config();
 
@@ -37,6 +38,16 @@ app.use((req, res, next) => {
 const supabaseUrl = 'https://nfztdiqibiipmdopkjos.supabase.co'
 const supabaseKey = process.env.SUPABASE_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
+
+// PostgreSQL connection for direct database access
+const pool = new Pool({
+    host: 'db.nfztdiqibiipmdopkjos.supabase.co',
+    port: 5432,
+    database: 'postgres',
+    user: 'postgres',
+    password: 'sai@426503',
+    ssl: { rejectUnauthorized: false }
+});
 
 // Routes
 app.get('/api/products', async (req, res) => {

@@ -10,23 +10,9 @@ const Login: React.FC<LoginProps> = ({ onLogin, isLoggedIn }) => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        try {
-            const response = await fetch('/api/admin/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-            });
-            const data = await response.json();
-            if (data.success) {
-                onLogin(email, password);
-            } else {
-                setError(data.message || 'Invalid email or password');
-            }
-        } catch (error) {
-            setError('Login failed');
-        }
+        onLogin(email, password);
     };
 
     return (

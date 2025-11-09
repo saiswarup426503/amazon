@@ -73,9 +73,23 @@ const App: React.FC = () => {
     }
   };
 
-  const handleLogin = (email: string, password: string) => {
-    setIsLoggedIn(true);
-    navigate('/admin');
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setIsLoggedIn(true);
+        navigate('/admin');
+      } else {
+        alert(data.message || 'Invalid email or password');
+      }
+    } catch (error) {
+      alert('Login failed');
+    }
   };
 
   const handleLogout = () => {

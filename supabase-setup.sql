@@ -1,4 +1,4 @@
--- Create products table
+
 CREATE TABLE products (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     title TEXT NOT NULL,
@@ -14,7 +14,6 @@ CREATE TABLE products (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create admin_logins table
 CREATE TABLE admin_logins (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     email TEXT NOT NULL,
@@ -23,17 +22,13 @@ CREATE TABLE admin_logins (
     user_agent TEXT
 );
 
--- Enable Row Level Security (RLS)
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_logins ENABLE ROW LEVEL SECURITY;
 
--- Create policies for products (allow all operations for now)
 CREATE POLICY "Allow all operations on products" ON products FOR ALL USING (true);
 
--- Create policies for admin_logins (allow all operations for now)
 CREATE POLICY "Allow all operations on admin_logins" ON admin_logins FOR ALL USING (true);
 
--- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -42,5 +37,4 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Create trigger for products table
 CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON products FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

@@ -19,3 +19,4 @@ View your app in AI Studio: https://ai.studio/apps/drive/1diGsWuHRTlS9pElxYFrXHJ
 3. Run the app:
    `npm run dev`
 "# amazon-afficate" 
+"# amazon-afficate" 

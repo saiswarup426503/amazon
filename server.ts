@@ -1,7 +1,7 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { createClient } from '@supabase/supabase-js';
 
 dotenv.config();
 
@@ -17,51 +17,35 @@ app.use((req, res, next) => {
     next();
 });
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/amazon').then(() => {
-    console.log('Connected to MongoDB');
-}).catch((error) => {
-    console.error('Error connecting to MongoDB:', error);
-});
-
-const productSchema = new mongoose.Schema({
-    id: String,
-    title: String,
-    price: String,
-    description: String,
-    rating: Number,
-    reviewSummary: String,
-    images: [String],
-    affiliateLink: String,
-    status: String,
-    publishDate: String,
-}, { timestamps: true });
-
-const Product = mongoose.model('Product', productSchema);
-
-const adminLoginSchema = new mongoose.Schema({
-    email: String,
-    loginTime: { type: Date, default: Date.now },
-    ip: String,
-    userAgent: String,
-});
-
-const AdminLogin = mongoose.model('AdminLogin', adminLoginSchema);
+// Initialize Supabase client
+const supabaseUrl = process.env.SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Routes
 app.get('/api/products', async (req, res) => {
     try {
-        const products = await Product.find();
-        res.json(products);
+        const { data, error } = await supabase
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        res.json(data);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 
 app.post('/api/products', async (req, res) => {
-    const product = new Product(req.body);
     try {
-        const savedProduct = await product.save();
-        res.status(201).json(savedProduct);
+        const { data, error } = await supabase
+            .from('products')
+            .insert([req.body])
+            .select();
+
+        if (error) throw error;
+        res.status(201).json(data[0]);
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -69,8 +53,14 @@ app.post('/api/products', async (req, res) => {
 
 app.put('/api/products/:id', async (req, res) => {
     try {
-        const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.json(updatedProduct);
+        const { data, error } = await supabase
+            .from('products')
+            .update(req.body)
+            .eq('id', req.params.id)
+            .select();
+
+        if (error) throw error;
+        res.json(data[0]);
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -78,7 +68,12 @@ app.put('/api/products/:id', async (req, res) => {
 
 app.delete('/api/products/:id', async (req, res) => {
     try {
-        await Product.findByIdAndDelete(req.params.id);
+        const { error } = await supabase
+            .from('products')
+            .delete()
+            .eq('id', req.params.id);
+
+        if (error) throw error;
         res.json({ message: 'Product deleted' });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -87,8 +82,11 @@ app.delete('/api/products/:id', async (req, res) => {
 
 app.post('/api/products/seed', async (req, res) => {
     try {
-        const products = req.body;
-        await Product.insertMany(products);
+        const { data, error } = await supabase
+            .from('products')
+            .insert(req.body);
+
+        if (error) throw error;
         res.json({ message: 'Products seeded' });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -100,12 +98,15 @@ app.post('/api/admin/login', async (req, res) => {
         const { email, password } = req.body;
         // Simple check, in real app use proper auth
         if (email === 'admin@example.com' && password === 'password') {
-            const login = new AdminLogin({
-                email,
-                ip: (req as any).realIp,
-                userAgent: req.get('User-Agent'),
-            });
-            await login.save();
+            const { data, error } = await supabase
+                .from('admin_logins')
+                .insert([{
+                    email,
+                    ip: (req as any).realIp,
+                    user_agent: req.get('User-Agent'),
+                }]);
+
+            if (error) throw error;
             res.json({ success: true });
         } else {
             res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -117,8 +118,13 @@ app.post('/api/admin/login', async (req, res) => {
 
 app.get('/api/admin/logins', async (req, res) => {
     try {
-        const logins = await AdminLogin.find().sort({ loginTime: -1 });
-        res.json(logins);
+        const { data, error } = await supabase
+            .from('admin_logins')
+            .select('*')
+            .order('login_time', { ascending: false });
+
+        if (error) throw error;
+        res.json(data);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

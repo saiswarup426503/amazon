@@ -6,7 +6,7 @@ import ImageUploader from './ImageUploader';
 
 interface ProductFormProps {
   products: Product[];
-  onSave: (product: Product) => void;
+  onSave: (product: Product) => Promise<void>;
 }
 
 const emptyProduct: Omit<Product, 'id'> = {
@@ -33,12 +33,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ products, onSave }) => {
       const existingProduct = products.find(p => p.id === id);
       if (existingProduct) {
         setProduct({
-            ...existingProduct,
-            publishDate: new Date(existingProduct.publishDate).toISOString().slice(0, 16)
+          ...existingProduct,
+          publishDate: new Date(existingProduct.publishDate).toISOString().slice(0, 16)
         });
       }
     } else {
-        setProduct(emptyProduct);
+      setProduct(emptyProduct);
     }
   }, [id, products]);
 
@@ -51,10 +51,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ products, onSave }) => {
     setProduct(prev => ({ ...prev, images }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ ...product, publishDate: new Date(product.publishDate).toISOString() } as Product);
-    navigate('/admin');
+    try {
+      await onSave({ ...product, publishDate: new Date(product.publishDate).toISOString() } as Product);
+      navigate('/admin');
+    } catch (error) {
+      console.error('Error saving product:', error);
+      alert('Failed to save product. Please try again.');
+    }
   };
 
   return (
@@ -71,43 +76,43 @@ const ProductForm: React.FC<ProductFormProps> = ({ products, onSave }) => {
             <input type="text" name="price" id="price" value={product.price} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" placeholder="$29.99" />
           </div>
         </div>
-        
+
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-700">Key Features / Description</label>
           <textarea name="description" id="description" value={product.description} onChange={handleChange} rows={5} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"></textarea>
         </div>
-        
+
         <ImageUploader existingImages={product.images} onUpload={handleImageUpload} />
 
         <div>
-            <label htmlFor="affiliateLink" className="block text-sm font-medium text-gray-700">Amazon Affiliate Link</label>
-            <input type="url" name="affiliateLink" id="affiliateLink" value={product.affiliateLink} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" placeholder="https://www.amazon.com/..." />
+          <label htmlFor="affiliateLink" className="block text-sm font-medium text-gray-700">Amazon Affiliate Link</label>
+          <input type="url" name="affiliateLink" id="affiliateLink" value={product.affiliateLink} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" placeholder="https://www.amazon.com/..." />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label htmlFor="rating" className="block text-sm font-medium text-gray-700">Overall Customer Rating (0-5)</label>
-                <input type="number" name="rating" id="rating" value={product.rating} onChange={handleChange} required min="0" max="5" step="0.1" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" />
-            </div>
-            <div>
-                <label htmlFor="reviewSummary" className="block text-sm font-medium text-gray-700">Review Summary/Snippets</label>
-                <input type="text" name="reviewSummary" id="reviewSummary" value={product.reviewSummary} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" />
-            </div>
+          <div>
+            <label htmlFor="rating" className="block text-sm font-medium text-gray-700">Overall Customer Rating (0-5)</label>
+            <input type="number" name="rating" id="rating" value={product.rating} onChange={handleChange} required min="0" max="5" step="0.1" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" />
+          </div>
+          <div>
+            <label htmlFor="reviewSummary" className="block text-sm font-medium text-gray-700">Review Summary/Snippets</label>
+            <input type="text" name="reviewSummary" id="reviewSummary" value={product.reviewSummary} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" />
+          </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
-                <select name="status" id="status" value={product.status} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
-                    {Object.values(ProductStatus).map(status => (
-                        <option key={status} value={status}>{status}</option>
-                    ))}
-                </select>
-            </div>
-            <div>
-                <label htmlFor="publishDate" className="block text-sm font-medium text-gray-700">Publish Date/Time</label>
-                <input type="datetime-local" name="publishDate" id="publishDate" value={product.publishDate} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" />
-            </div>
+          <div>
+            <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
+            <select name="status" id="status" value={product.status} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+              {Object.values(ProductStatus).map(status => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="publishDate" className="block text-sm font-medium text-gray-700">Publish Date/Time</label>
+            <input type="datetime-local" name="publishDate" id="publishDate" value={product.publishDate} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" />
+          </div>
         </div>
 
         <div className="flex justify-end space-x-4">

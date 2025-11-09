@@ -11,6 +11,22 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Utility functions for key transformation
+const toSnakeCase = (str: string) => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+const toCamelCase = (str: string) => str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+
+const transformKeys = (obj: any, transformFn: (str: string) => string): any => {
+    if (obj === null || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(item => transformKeys(item, transformFn));
+    const transformed: any = {};
+    for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            transformed[transformFn(key)] = transformKeys(obj[key], transformFn);
+        }
+    }
+    return transformed;
+};
+
 // Middleware to get real IP
 app.use((req, res, next) => {
     (req as any).realIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress;
@@ -31,7 +47,7 @@ app.get('/api/products', async (req, res) => {
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        res.json(data);
+        res.json(transformKeys(data, toCamelCase));
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -39,13 +55,15 @@ app.get('/api/products', async (req, res) => {
 
 app.post('/api/products', async (req, res) => {
     try {
+        const { id, ...productData } = req.body;
+        const snakeCaseData = transformKeys(productData, toSnakeCase);
         const { data, error } = await supabase
             .from('products')
-            .insert([req.body])
+            .insert([snakeCaseData])
             .select();
 
         if (error) throw error;
-        res.status(201).json(data[0]);
+        res.status(201).json(transformKeys(data[0], toCamelCase));
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -53,14 +71,16 @@ app.post('/api/products', async (req, res) => {
 
 app.put('/api/products/:id', async (req, res) => {
     try {
+        const { id, ...productData } = req.body;
+        const snakeCaseData = transformKeys(productData, toSnakeCase);
         const { data, error } = await supabase
             .from('products')
-            .update(req.body)
+            .update(snakeCaseData)
             .eq('id', req.params.id)
             .select();
 
         if (error) throw error;
-        res.json(data[0]);
+        res.json(transformKeys(data[0], toCamelCase));
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

@@ -34,32 +34,30 @@ const App: React.FC = () => {
     }
   };
 
-  const addProduct = async (product: Product) => {
-    try {
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(product),
-      });
-      const newProduct = await response.json();
-      setProducts([...products, newProduct]);
-    } catch (error) {
-      console.error('Error adding product:', error);
+  const addProduct = async (product: Product): Promise<void> => {
+    const response = await fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(product),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to add product: ${response.statusText}`);
     }
+    const newProduct = await response.json();
+    setProducts([...products, newProduct]);
   };
 
-  const updateProduct = async (updatedProduct: Product) => {
-    try {
-      const response = await fetch(`/api/products/${updatedProduct.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedProduct),
-      });
-      const data = await response.json();
-      setProducts(products.map(p => (p.id === updatedProduct.id ? data : p)));
-    } catch (error) {
-      console.error('Error updating product:', error);
+  const updateProduct = async (updatedProduct: Product): Promise<void> => {
+    const response = await fetch(`/api/products/${updatedProduct.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedProduct),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to update product: ${response.statusText}`);
     }
+    const data = await response.json();
+    setProducts(products.map(p => (p.id === updatedProduct.id ? data : p)));
   };
 
   const deleteProduct = async (id: string) => {
@@ -93,6 +91,10 @@ const App: React.FC = () => {
             <Route path="/admin" element={isLoggedIn ? <AdminDashboard products={products} deleteProduct={deleteProduct} /> : <Navigate to="/login" replace />} />
             <Route path="/admin/new" element={isLoggedIn ? <ProductForm products={products} onSave={addProduct} /> : <Navigate to="/login" replace />} />
             <Route path="/admin/edit/:id" element={isLoggedIn ? <ProductForm products={products} onSave={updateProduct} /> : <Navigate to="/login" replace />} />
+
+            {/* Visitor Routes for Admin Preview */}
+            <Route path="/" element={<HomePage products={products} />} />
+            <Route path="/product/:id" element={<ProductPage products={products} />} />
 
             {/* Login Route */}
             <Route path="/login" element={<Login onLogin={handleLogin} isLoggedIn={isLoggedIn} />} />

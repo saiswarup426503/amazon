@@ -99,7 +99,7 @@ app.post('/api/admin/login', async (req, res) => {
     try {
         const { email, password } = req.body;
         // Simple check, in real app use proper auth
-        if ((email === 'admin@example.com' || email === 'admin') && (password === 'password' || password === 'admin')) {
+        if (email === 'admin@example.com' && password === 'password') {
             const login = new AdminLogin({
                 email,
                 ip: (req as any).realIp,
